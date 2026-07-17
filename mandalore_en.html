@@ -818,7 +818,7 @@
 
     <div class="secret-doc">
       <div class="secret-doc-label">Fragment 01 — Royal Palace registry, restricted section</div>
-      <p>« ...the black blade was forged over a thousand years ago by <span class="secret-redacted">Tarre Vizsla</span>, the first of our people admitted into the Jedi Order. Its hilt: pure beskar, the only metal worthy of it. Ever since, whoever handles it also carries the right to rule... by force, if need be. »</p>
+      <p>« ...the black blade was forged over a thousand years ago by <span class="secret-redacted">Tarre Vizsla</span>, the first of our people admitted into the Jedi Order. Its hilt: pure beskar, the only metal worthy of it. Ever since, whoever carries it also carries the right to rule... by force, if need be. »</p>
       <p>« Beskar is still mined in secret in the lower galleries, despite the current government's ban on wearing armor. The forges never stopped running. They only fell silent. »</p>
     </div>
 
@@ -981,9 +981,12 @@
   function playSound(key){
     const el = sounds[key];
     if (!el) return;
+    // A real playback is requested for this sound: cancel any pending
+    // "unlock" for it (see unlockAllAudio), so a slow network doesn't
+    // mistake this real playback for the silent unlock and cut it off.
     audioUnlockPending[key] = false;
     el.currentTime = 0;
-    el.play().catch(()
+    el.play().catch(() => { /* playback blocked or file missing: ignore */ });
   }
 
   /* ============================================================
@@ -1012,12 +1015,17 @@
       // joue réellement (et s'entend) pendant le court instant où l'on
       // attend que la promesse de lecture se résolve avant de la mettre
       // en pause.
+      audioUnlockPending[key] = true;
       el.muted = true;
       const p = el.play();
       const restore = () => {
+        // If a real playback has already been requested in the meantime
+        // (slow network on first load), leave this element alone instead
+        // of pausing the real playback that's now underway.
+        if (!audioUnlockPending[key]) return;
         el.pause();
         el.currentTime = 0;
-        el.muted = muted; // respecte la préférence son actuelle du visiteur
+        el.muted = muted; // respects the visitor's current sound preference
       };
       if (p && p.catch) {
         p.then(restore).catch(restore);
