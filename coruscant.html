@@ -754,9 +754,20 @@
   const tapScreen = document.getElementById('tap-screen');
   tapScreen.addEventListener('click', () => {
     tapScreen.classList.add('hide');
+    unlockAllAudio();
     playSound('boot');
     startBoot();
   }, { once:true });
+
+  function unlockAllAudio(){
+    Object.entries(sounds).forEach(([key, el]) => {
+      if (!el || key === 'boot') return;
+      const p = el.play();
+      if (p && p.catch) {
+        p.then(() => { el.pause(); el.currentTime = 0; }).catch(() => {});
+      }
+    });
+  }
 
   /* ============================================================
      ÉTAPE 2 — séquence de chargement
