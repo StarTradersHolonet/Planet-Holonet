@@ -744,9 +744,12 @@
   function playSound(key){
     const el = sounds[key];
     if (!el) return;
+    // A real playback is requested for this sound: cancel any pending
+    // "unlock" for it (see unlockAllAudio), so a slow network doesn't
+    // mistake this real playback for the silent unlock and cut it off.
     audioUnlockPending[key] = false;
     el.currentTime = 0;
-    el.play().catch(());
+    el.play().catch(() => { /* playback blocked or file missing: ignore */ });
   }
 
   /* ============================================================
@@ -762,17 +765,30 @@
     startBoot();
   }, { once:true });
 
+  // iOS (Safari/Chrome) n'autorise la lecture programmée d'un son que si elle
+  // est déclenchée directement par un geste utilisateur. Un son lancé plus
+  // tard via setTimeout (comme le jingle Star Tours ou l'ambiance) serait
+  // bloqué silencieusement. On "déverrouille" donc tous les éléments audio
+  // ici, en même temps que le tap, en les lançant puis en les mettant en
+  // pause immédiatement — ils pourront ensuite être rejoués sans restriction.
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
+      // Coupe le son AVANT de lancer play(), sinon le début de la piste
+      // joue réellement (et s'entend) pendant le court instant où l'on
+      // attend que la promesse de lecture se résolve avant de la mettre
+      // en pause.
       audioUnlockPending[key] = true;
       el.muted = true;
       const p = el.play();
       const restore = () => {
+        // If a real playback has already been requested in the meantime
+        // (slow network on first load), leave this element alone instead
+        // of pausing the real playback that's now underway.
         if (!audioUnlockPending[key]) return;
         el.pause();
         el.currentTime = 0;
-        el.muted = muted; // respecte la préférence son actuelle du visiteur
+        el.muted = muted; // respects the visitor's current sound preference
       };
       if (p && p.catch) {
         p.then(restore).catch(restore);
