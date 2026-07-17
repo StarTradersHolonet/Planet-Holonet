@@ -819,7 +819,7 @@
     <div class="secret-doc">
       <div class="secret-doc-label">Fragment 01 — Citadel Tower Log</div>
       <p>« ...the data transfer was authorized by Director <span class="secret-redacted">Orson Krennic</span> himself. The data tape bears the structural designation "Stardust." Vault access restricted to Krennic-level clearance only... »</p>
-      <p>« ...an unlisted team infiltrated the Tower, identifying themselves as Rogue <span class="secret-redacted"> One </span>. The planetary shield was manually disabled from the beach. Origin of the order: unknown »</p>
+      <p>« ...an unlisted team infiltrated the Tower, identifying themselves as <span class="secret-redacted">Rogue One</span>. The planetary shield was manually disabled from the beach. Origin of the order: unknown... »</p>
     </div>
 
     <div class="secret-doc">
@@ -977,9 +977,15 @@
     updateSoundBtn();
   });
 
+  const audioUnlockPending = {};
+
   function playSound(key){
     const el = sounds[key];
     if (!el) return;
+    // A real playback is requested for this sound: cancel any pending
+    // "unlock" for it (see unlockAllAudio), so a slow network doesn't
+    // mistake this real playback for the silent unlock and cut it off.
+    audioUnlockPending[key] = false;
     el.currentTime = 0;
     el.play().catch(() => { /* playback blocked or file missing: ignore */ });
   }
@@ -997,15 +1003,30 @@
     startBoot();
   }, { once:true });
 
+  // iOS (Safari/Chrome) n'autorise la lecture programmée d'un son que si elle
+  // est déclenchée directement par un geste utilisateur. Un son lancé plus
+  // tard via setTimeout (comme le jingle Star Tours ou l'ambiance) serait
+  // bloqué silencieusement. On "déverrouille" donc tous les éléments audio
+  // ici, en même temps que le tap, en les lançant puis en les mettant en
+  // pause immédiatement — ils pourront ensuite être rejoués sans restriction.
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
+      // Coupe le son AVANT de lancer play(), sinon le début de la piste
+      // joue réellement (et s'entend) pendant le court instant où l'on
+      // attend que la promesse de lecture se résolve avant de la mettre
+      // en pause.
+      audioUnlockPending[key] = true;
       el.muted = true;
       const p = el.play();
       const restore = () => {
+        // If a real playback has already been requested in the meantime
+        // (slow network on first load), leave this element alone instead
+        // of pausing the real playback that's now underway.
+        if (!audioUnlockPending[key]) return;
         el.pause();
         el.currentTime = 0;
-        el.muted = muted; // respecte la préférence son actuelle du visiteur
+        el.muted = muted; // respects the visitor's current sound preference
       };
       if (p && p.catch) {
         p.then(restore).catch(restore);
@@ -1090,6 +1111,7 @@
     document.getElementById('welcome-message').textContent =
       visitedBefore ? `Welcome back to ${PLANET_LABEL}` : `Welcome to ${PLANET_LABEL}`;
 
+    // marque la planète actuelle comme visitée pour les prochains scans
     markVisited(PLANET_SLUG);
     const visitedNow = getVisited();
 
@@ -1109,7 +1131,7 @@
     setTimeout(() => {
       welcomeEl.classList.add('hide');
       showStarTours();
-    }, 3256);
+    }, 3256); // aligné sur la fin réelle de boot-access.mp3 (5956ms - 2700ms de boot)
   }
 
   /* ============================================================
@@ -1134,6 +1156,8 @@
     pageEl.classList.add('reveal');
     playSound('ambient');
 
+    // La transmission interceptée ne se déclenche qu'une seule fois par
+    // planète : une fois vue, l'inactivité sur la page ne la redéclenche plus.
     if (!hasBeenIntercepted(PLANET_SLUG)) {
       startInactivityWatch();
     }
@@ -1185,7 +1209,7 @@
       pageEl.classList.remove('reveal');
       document.getElementById('secret-overlay').classList.add('show');
       playSound('secret');
-    }, 1541);
+    }, 1541); // aligné sur la durée réelle de glitch.mp3
   }
 
   document.getElementById('secret-back-btn').addEventListener('click', () => {
