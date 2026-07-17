@@ -596,7 +596,7 @@
   }
   #glitch-overlay.active{
     opacity:1; visibility:visible;
-    animation:glitch-flicker 1.4s steps(2, end) forwards;
+    animation:glitch-flicker 1.541s steps(2, end) forwards;
   }
   #glitch-overlay .glitch-text{
     font-family:'Rajdhani', sans-serif;
@@ -650,6 +650,7 @@
      (aucune erreur visible pour le visiteur). -->
 <audio id="snd-boot" src="audio/boot-access.mp3" preload="none"></audio>
 <audio id="snd-ambient" src="audio/ambient-scarif.mp3" preload="none" loop></audio>
+<audio id="snd-glitch" src="audio/glitch.mp3" preload="none"></audio>
 <audio id="snd-startours" src="audio/startours-jingle.mp3" preload="none"></audio>
 
 <!-- ===================== BOUTON SON ===================== -->
@@ -812,6 +813,7 @@
   const sounds = {
     boot: document.getElementById('snd-boot'),
     ambient: document.getElementById('snd-ambient'),
+    glitch: document.getElementById('snd-glitch'),
     startours: document.getElementById('snd-startours'),
   };
 
@@ -1007,11 +1009,13 @@
   }
   function triggerGlitch(){
     markIntercepted(PLANET_SLUG);
+    sounds.ambient.pause();
+    playSound('glitch');
     document.body.classList.add('glitch-active');
     document.getElementById('glitch-overlay').classList.add('active');
     setTimeout(() => {
       window.location.href = SECRET_PAGE_URL;
-    }, 1500);
+    }, 1541); // aligné sur la durée réelle de glitch.mp3
   }
 </script>
 
