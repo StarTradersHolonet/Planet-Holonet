@@ -846,9 +846,28 @@
   const tapScreen = document.getElementById('tap-screen');
   tapScreen.addEventListener('click', () => {
     tapScreen.classList.add('hide');
+    unlockAllAudio();
     playSound('boot');
     startBoot();
   }, { once:true });
+
+  function unlockAllAudio(){
+    Object.entries(sounds).forEach(([key, el]) => {
+      if (!el || key === 'boot') return;
+      el.muted = true;
+      const p = el.play();
+      const restore = () => {
+        el.pause();
+        el.currentTime = 0;
+        el.muted = muted;
+      };
+      if (p && p.catch) {
+        p.then(restore).catch(restore);
+      } else {
+        restore();
+      }
+    });
+  }
 
   /* ============================================================
      ÉTAPE 2 — séquence de chargement (existante)
