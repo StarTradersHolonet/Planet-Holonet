@@ -769,6 +769,21 @@
 
 <script>
   /* ============================================================
+     Ouvrir la page avec ?reset=1 dans l'URL efface le flag "transmission
+     interceptée déjà vue" avant que le reste du script ne s'exécute,
+     pour pouvoir redéclencher le glitch autant de fois que nécessaire.
+     Fonctionnalité volontairement non documentée aux visiteurs.
+     ============================================================ */
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === '1') {
+      localStorage.removeItem('holonet_intercepted');
+      // décommente si tu veux aussi réinitialiser le carnet de voyage :
+      // localStorage.removeItem('holonet_visited');
+    }
+  })();
+
+  /* ============================================================
      CONFIG PROPRE À CETTE PLANÈTE
      ============================================================ */
   const PLANET_SLUG = "scarif";
@@ -836,12 +851,16 @@
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
+      // Coupe le son AVANT de lancer play(), sinon le début de la piste
+      // joue réellement (et s'entend) pendant le court instant où l'on
+      // attend que la promesse de lecture se résolve avant de la mettre
+      // en pause.
       el.muted = true;
       const p = el.play();
       const restore = () => {
         el.pause();
         el.currentTime = 0;
-        el.muted = muted;
+        el.muted = muted; // respecte la préférence son actuelle du visiteur
       };
       if (p && p.catch) {
         p.then(restore).catch(restore);
