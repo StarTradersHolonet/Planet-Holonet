@@ -635,6 +635,118 @@
     100%{ transform:translate(-3px,2px); filter:hue-rotate(-20deg); }
   }
 
+  /* ---------- panel "intercepted transmission" (ex secret page) ---------- */
+  #secret-overlay{
+    --line: rgba(255,85,85,0.25);
+    position:fixed; inset:0; z-index:110;
+    background:var(--void);
+    overflow-y:auto;
+    padding:28px 20px 60px;
+    opacity:0; visibility:hidden;
+    pointer-events:none;
+    transition:opacity 0.4s ease, visibility 0.4s ease;
+  }
+  #secret-overlay.show{
+    opacity:1; visibility:visible;
+    pointer-events:auto;
+  }
+  #secret-overlay .secret-bg-grid{
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:42px 42px;
+    mask-image: radial-gradient(ellipse at center, black 10%, transparent 75%);
+    opacity:0.4;
+    z-index:0;
+  }
+  .secret-wrap{ position:relative; z-index:1; max-width:520px; margin:0 auto; }
+  .secret-header{
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--line);
+    padding-bottom:12px; margin-bottom:22px;
+    font-family:'Rajdhani', sans-serif;
+    letter-spacing:0.14em;
+    font-size:0.72rem;
+    color:#ff5555;
+  }
+  .secret-header .dot{
+    display:inline-block; width:7px; height:7px; border-radius:50%;
+    background:#ff5555; margin-right:8px;
+    animation:blink 0.9s steps(1) infinite;
+    box-shadow:0 0 8px #ff5555;
+  }
+  #secret-overlay h1{
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:0.04em;
+    color:#ff5555;
+    margin-bottom:6px;
+  }
+  .secret-subtitle{
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.8rem;
+    color:var(--text-dim);
+    margin-bottom:28px;
+    letter-spacing:0.03em;
+  }
+  .secret-doc{
+    border:1px solid var(--line);
+    background:rgba(20,8,8,0.35);
+    padding:20px 18px;
+    margin-bottom:18px;
+  }
+  .secret-doc .secret-doc-label{
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.14em;
+    color:#ff5555;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .secret-doc p{
+    font-size:0.82rem;
+    line-height:1.7;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .secret-doc p:last-child{ margin-bottom:0; }
+  .secret-redacted{
+    display:inline-block;
+    background:repeating-linear-gradient(135deg, #000 0 5px, #1c0606 5px 10px);
+    color:transparent;
+    border:1px solid #ff5555;
+    border-radius:1px;
+    box-shadow:0 0 5px rgba(255,85,85,0.45);
+    user-select:none;
+    padding:1px 4px;
+    margin:0 1px;
+  }
+  .secret-footer-note{
+    margin-top:30px;
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.7rem;
+    color:var(--text-dim);
+    text-align:center;
+    letter-spacing:0.05em;
+    line-height:1.6;
+  }
+  .secret-back-btn{
+    display:inline-block;
+    margin-top:22px;
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:var(--cyan);
+    background:none;
+    text-decoration:none;
+    border:1px solid rgba(111,227,255,0.4);
+    padding:8px 14px;
+    cursor:pointer;
+  }
+  .secret-back-btn:hover{ background:rgba(111,227,255,0.08); }
+
 </style>
 </head>
 <body>
@@ -652,6 +764,7 @@
 <audio id="snd-ambient" src="audio/ambient-scarif.mp3" preload="none" loop></audio>
 <audio id="snd-glitch" src="audio/glitch.mp3" preload="none"></audio>
 <audio id="snd-startours" src="audio/startours-jingle.mp3" preload="none"></audio>
+<audio id="snd-secret" src="audio/secret-loop.mp3" preload="none" loop></audio>
 
 <!-- ===================== BOUTON SON ===================== -->
 <button id="sound-toggle" aria-label="Toggle sound">🔊</button>
@@ -692,6 +805,42 @@
 <!-- ===================== OVERLAY EFFET DE BUG ===================== -->
 <div id="glitch-overlay">
   <div class="glitch-text">TRANSMISSION INTERCEPTED</div>
+</div>
+
+<!-- ===================== PANNEAU "TRANSMISSION INTERCEPTED" ===================== -->
+<div id="secret-overlay">
+  <div class="secret-bg-grid"></div>
+  <div class="secret-wrap">
+    <div class="secret-header"><span><span class="dot"></span>UNAUTHORIZED SIGNAL DETECTED</span><span id="secret-clock">00:00:00</span></div>
+
+    <h1>TRANSMISSION INTERCEPTED</h1>
+    <div class="secret-subtitle">Source: security complex archives — Scarif · File integrity: partial</div>
+
+    <div class="secret-doc">
+      <div class="secret-doc-label">Fragment 01 — Citadel Tower Log</div>
+      <p>« ...the data transfer was authorized by Director <span class="secret-redacted">Orson Krennic</span> himself. The data tape bears the structural designation "Stardust." Vault access restricted to Krennic-level clearance only... »</p>
+      <p>« ...an unlisted team infiltrated the Tower, identifying themselves as <span class="secret-redacted">Rogue One</span>. The planetary shield was manually disabled from the beach. Origin of the order: unknown... »</p>
+    </div>
+
+    <div class="secret-doc">
+      <div class="secret-doc-label">Fragment 02 — Technical note, Erso archives</div>
+      <p>« The primary reactor's thermal exhaust network contains a deliberate weakness, concealed within the structural plans under the guise of exhaust tolerance. Signed: <span class="secret-redacted">Galen Erso</span>. »</p>
+      <p>« His daughter, <span class="secret-redacted">Jyn Erso</span>, was reportedly located on site on the day of the incident. »</p>
+    </div>
+
+    <div class="secret-doc">
+      <div class="secret-doc-label">Fragment 03 — Last message captured</div>
+      <p>« ...transmission of the plans to Admiral <span class="secret-redacted">Raddus</span>'s fleet confirmed. Signal relayed toward a consular vessel registered as <span class="secret-redacted">Tantive IV</span>... »</p>
+      <p>[FILE CORRUPTED — END OF TRANSMISSION]</p>
+    </div>
+
+    <div class="secret-footer-note">
+      This transmission should not exist.<br>
+      Reconnect to the official Holonet network to continue your journey.
+    </div>
+
+    <button type="button" class="secret-back-btn" id="secret-back-btn">← Restore secure connection</button>
+  </div>
 </div>
 
 <!-- ===================== CONTENU DE LA PLANÈTE ===================== -->
@@ -801,7 +950,6 @@
 
   // Timer d'inactivité avant le bug "transmission interceptée".
   const INACTIVITY_MS = 30000;
-  const SECRET_PAGE_URL = "scarif_secret_en.html";
 
   /* ============================================================
      SON — mute/unmute mémorisé
@@ -812,6 +960,7 @@
     ambient: document.getElementById('snd-ambient'),
     glitch: document.getElementById('snd-glitch'),
     startours: document.getElementById('snd-startours'),
+    secret: document.getElementById('snd-secret'),
   };
 
   let muted = localStorage.getItem('holonet_muted') === 'true';
@@ -851,10 +1000,6 @@
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
-      // Coupe le son AVANT de lancer play(), sinon le début de la piste
-      // joue réellement (et s'entend) pendant le court instant où l'on
-      // attend que la promesse de lecture se résolve avant de la mettre
-      // en pause.
       el.muted = true;
       const p = el.play();
       const restore = () => {
@@ -945,7 +1090,6 @@
     document.getElementById('welcome-message').textContent =
       visitedBefore ? `Welcome back to ${PLANET_LABEL}` : `Welcome to ${PLANET_LABEL}`;
 
-    // marque la planète actuelle comme visitée pour les prochains scans
     markVisited(PLANET_SLUG);
     const visitedNow = getVisited();
 
@@ -965,7 +1109,7 @@
     setTimeout(() => {
       welcomeEl.classList.add('hide');
       showStarTours();
-    }, 3256); // aligné sur la fin réelle de boot-access.mp3 (5956ms - 2700ms de boot)
+    }, 3256);
   }
 
   /* ============================================================
@@ -990,8 +1134,6 @@
     pageEl.classList.add('reveal');
     playSound('ambient');
 
-    // La transmission interceptée ne se déclenche qu'une seule fois par
-    // planète : une fois vue, l'inactivité sur la page ne la redéclenche plus.
     if (!hasBeenIntercepted(PLANET_SLUG)) {
       startInactivityWatch();
     }
@@ -1017,6 +1159,7 @@
   }
 
   let inactivityTimer;
+  let alreadyTriggered = false;
   function startInactivityWatch(){
     resetInactivityTimer();
     ['mousemove','scroll','touchstart','keydown','click'].forEach(evt => {
@@ -1024,19 +1167,43 @@
     });
   }
   function resetInactivityTimer(){
+    if (alreadyTriggered) return;
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(triggerGlitch, INACTIVITY_MS);
   }
   function triggerGlitch(){
+    if (alreadyTriggered) return;
+    alreadyTriggered = true;
     markIntercepted(PLANET_SLUG);
     sounds.ambient.pause();
     playSound('glitch');
     document.body.classList.add('glitch-active');
     document.getElementById('glitch-overlay').classList.add('active');
     setTimeout(() => {
-      window.location.href = SECRET_PAGE_URL;
-    }, 1541); // aligné sur la durée réelle de glitch.mp3
+      document.body.classList.remove('glitch-active');
+      document.getElementById('glitch-overlay').classList.remove('active');
+      pageEl.classList.remove('reveal');
+      document.getElementById('secret-overlay').classList.add('show');
+      playSound('secret');
+    }, 1541);
   }
+
+  document.getElementById('secret-back-btn').addEventListener('click', () => {
+    sounds.secret.pause();
+    document.getElementById('secret-overlay').classList.remove('show');
+    pageEl.classList.add('reveal');
+    playSound('ambient');
+  });
+
+  // ---------- horloge du panneau "transmission interceptée" ----------
+  const secretClockEl = document.getElementById('secret-clock');
+  function tickSecretClock(){
+    const d = new Date();
+    const p = n => String(n).padStart(2,'0');
+    secretClockEl.textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+  tickSecretClock();
+  setInterval(tickSecretClock, 1000);
 </script>
 
 </body>
