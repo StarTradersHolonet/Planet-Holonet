@@ -818,8 +818,8 @@
 
     <div class="secret-doc">
       <div class="secret-doc-label">Fragment 01 — Journal de la Tour Citadelle</div>
-      <p>« ...le transfert de données a été autorisé par le Directeur <span class="secret-redacted">Orson Krennic</span> lui-même. Le disque de données porte la mention structurelle "Nébuleuse". Accès du coffre restreint au niveau Krennic uniquement... »</p>
-      <p>« ...une équipe non répertoriée s'est introduite dans la Tour, se faisant appeler Rogue <span class="secret-redacted"> One </span>. Le bouclier planétaire a été désactivé manuellement depuis la plage. Origine de l'ordre : inconnue »</p>
+      <p>« ...le transfert de données a été autorisé par le Directeur <span class="secret-redacted">Orson Krennic</span> lui-même. Le tapis de données porte la mention structurelle "Stardust". Accès du coffre restreint au niveau Krennic uniquement... »</p>
+      <p>« ...une équipe non répertoriée s'est introduite dans la Tour, se faisant appeler <span class="secret-redacted">Rogue One</span>. Le bouclier planétaire a été désactivé manuellement depuis la plage. Origine de l'ordre : inconnue... »</p>
     </div>
 
     <div class="secret-doc">
@@ -982,9 +982,13 @@
   function playSound(key){
     const el = sounds[key];
     if (!el) return;
+    // Une vraie lecture est demandée pour ce son : on annule le
+    // "déverrouillage" en attente le concernant (voir unlockAllAudio),
+    // pour qu'un réseau lent ne vienne pas couper cette lecture réelle
+    // en la confondant avec le déverrouillage silencieux du tap initial.
     audioUnlockPending[key] = false;
     el.currentTime = 0;
-    el.play().catch(());
+    el.play().catch(() => { /* lecture bloquée ou fichier absent : on ignore */ });
   }
 
   /* ============================================================
@@ -1000,12 +1004,27 @@
     startBoot();
   }, { once:true });
 
+  // iOS (Safari/Chrome) n'autorise la lecture programmée d'un son que si elle
+  // est déclenchée directement par un geste utilisateur. Un son lancé plus
+  // tard via setTimeout (comme le jingle Star Tours ou l'ambiance) serait
+  // bloqué silencieusement. On "déverrouille" donc tous les éléments audio
+  // ici, en même temps que le tap, en les lançant puis en les mettant en
+  // pause immédiatement — ils pourront ensuite être rejoués sans restriction.
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
+      // Coupe le son AVANT de lancer play(), sinon le début de la piste
+      // joue réellement (et s'entend) pendant le court instant où l'on
+      // attend que la promesse de lecture se résolve avant de la mettre
+      // en pause.
+      audioUnlockPending[key] = true;
       el.muted = true;
       const p = el.play();
       const restore = () => {
+        // Si une vraie lecture a déjà été demandée entre-temps (réseau
+        // lent au premier chargement), on ne touche plus à cet élément :
+        // on laisse la vraie lecture suivre son cours au lieu de la couper.
+        if (!audioUnlockPending[key]) return;
         el.pause();
         el.currentTime = 0;
         el.muted = muted; // respecte la préférence son actuelle du visiteur
@@ -1093,6 +1112,7 @@
     document.getElementById('welcome-message').textContent =
       visitedBefore ? `Bon retour à ${PLANET_LABEL}` : `Bienvenue à ${PLANET_LABEL}`;
 
+    // marque la planète actuelle comme visitée pour les prochains scans
     markVisited(PLANET_SLUG);
     const visitedNow = getVisited();
 
@@ -1112,7 +1132,7 @@
     setTimeout(() => {
       welcomeEl.classList.add('hide');
       showStarTours();
-    }, 3256);
+    }, 3256); // aligné sur la fin réelle de boot-access.mp3 (5956ms - 2700ms de boot)
   }
 
   /* ============================================================
@@ -1137,6 +1157,8 @@
     pageEl.classList.add('reveal');
     playSound('ambient');
 
+    // La transmission interceptée ne se déclenche qu'une seule fois par
+    // planète : une fois vue, l'inactivité sur la page ne la redéclenche plus.
     if (!hasBeenIntercepted(PLANET_SLUG)) {
       startInactivityWatch();
     }
@@ -1183,12 +1205,16 @@
     document.body.classList.add('glitch-active');
     document.getElementById('glitch-overlay').classList.add('active');
     setTimeout(() => {
+      // On n'utilise plus de redirection : la navigation ferait perdre le
+      // droit de lecture audio accordé au tap initial. On bascule donc
+      // simplement l'affichage vers le panneau "transmission interceptée",
+      // qui reste sur la même page.
       document.body.classList.remove('glitch-active');
       document.getElementById('glitch-overlay').classList.remove('active');
       pageEl.classList.remove('reveal');
       document.getElementById('secret-overlay').classList.add('show');
       playSound('secret');
-    }, 1541);
+    }, 1541); // aligné sur la durée réelle de glitch.mp3
   }
 
   document.getElementById('secret-back-btn').addEventListener('click', () => {
