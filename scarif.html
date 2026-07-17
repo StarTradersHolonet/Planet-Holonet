@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -659,15 +659,15 @@
 <!-- ===================== ÉCRAN "TOUCHER POUR ÉTABLIR LA CONNEXION" ===================== -->
 <div id="tap-screen">
   <div class="tap-icon"></div>
-  <div class="tap-text">Toucher pour établir la connexion</div>
+  <div class="tap-text">Tap to establish connection</div>
 </div>
 
 <!-- ===================== ÉCRAN CARNET DE VOYAGE ===================== -->
 <div id="welcome">
   <div class="welcome-box">
     <div class="welcome-check">✔</div>
-    <div class="welcome-status">Autorisation de vol validée</div>
-    <div class="welcome-message" id="welcome-message">Bienvenue à Scarif</div>
+    <div class="welcome-status">Flight clearance granted</div>
+    <div class="welcome-message" id="welcome-message">Welcome to Scarif</div>
     <div class="travel-log" id="travel-log"></div>
   </div>
 </div>
@@ -681,7 +681,7 @@
 <div id="boot">
   <div class="boot-console">
     <div class="boot-header">
-      <span>HOLO-NET // CANAL SÉCURISÉ</span>
+      <span>HOLO-NET // SECURE CHANNEL</span>
       <span id="boot-clock">00:00:00</span>
     </div>
     <div class="boot-lines" id="boot-lines"></div>
@@ -691,7 +691,7 @@
 
 <!-- ===================== OVERLAY EFFET DE BUG ===================== -->
 <div id="glitch-overlay">
-  <div class="glitch-text">TRANSMISSION INTERCEPTÉE</div>
+  <div class="glitch-text">TRANSMISSION INTERCEPTED</div>
 </div>
 
 <!-- ===================== CONTENU DE LA PLANÈTE ===================== -->
@@ -699,16 +699,16 @@
 
   <div class="hero-row">
     <div class="hero-text">
-      <div class="eyebrow">Transmission Holonet · Destination confirmée</div>
+      <div class="eyebrow">Holonet Transmission · Destination Confirmed</div>
       <h1 class="planet-name">Scarif</h1>
       
-      <div class="designation">Secteur Abrion · Bordure Extérieure · Complexe de sécurité impérial</div>
+      <div class="designation">Abrion Sector · Outer Rim Territories · Imperial Security Complex</div>
     </div>
     <div class="holo-planet">
       <div class="ring r2"></div>
       <div class="orb"></div>
       <div class="ring r3"></div>
-      <div class="tag">VUE ORBITALE</div>
+      <div class="tag">ORBITAL VIEW</div>
     </div>
   </div>
 
@@ -718,56 +718,71 @@
       <rect x="9.25" y="6.2" width="1.5" height="5.4" rx="0.75" fill="#ff5555"/>
       <rect x="9.25" y="12.6" width="1.5" height="1.5" rx="0.75" fill="#ff5555"/>
     </svg>
-    <span>Accès autorisé uniquement sous dérogation impériale.<br>Code d'accès nécessaire.</span>
+    <span>Access authorized only under Imperial dispensation.<br>Access code required.</span>
   </div>
 
   <hr class="div">
 
   <div class="grid-data">
     <div class="data-cell">
-      <div class="label">Climat</div>
+      <div class="label">Climate</div>
       <div class="value">Tropical</div>
     </div>
     <div class="data-cell">
-      <div class="label">Bouclier planétaire</div>
-      <div class="value amber">Actif · Porte du Bouclier</div>
+      <div class="label">Planetary Shield</div>
+      <div class="value amber">Active · Shield Gate</div>
     </div>
     <div class="data-cell">
-      <div class="label">Gouvernement</div>
-      <div class="value amber">Occupation militaire impériale</div>
+      <div class="label">Government</div>
+      <div class="value amber">Imperial military occupation</div>
     </div>
   </div>
 
   <hr class="div">
 
-  <div class="section-title">Sites recommandés</div>
+  <div class="section-title">Recommended Sites</div>
   <ul class="locations">
     <li>
       <span class="idx">01</span>
-      <div><b>Tour Citadelle</b><span class="desc">Siège du complexe de sécurité impérial. Accès strictement réservé au personnel autorisé.</span></div>
+      <div><b>Citadel Tower</b><span class="desc">Headquarters of the Imperial security complex. Access strictly restricted to authorized personnel.</span></div>
     </li>
     <li>
       <span class="idx">02</span>
-      <div><b>Porte du Bouclier</b><span class="desc">Station en haute altitude contrôlant l'unique point d'entrée à travers le bouclier déflecteur planétaire.</span></div>
+      <div><b>Shield Gate</b><span class="desc">High-altitude station controlling the sole entry point through the planetary deflector shield.</span></div>
     </li>
     <li>
       <span class="idx">03</span>
-      <div><b>Plages tropicales</b><span class="desc">Archipels et lagons cristallins entourant les installations impériales. Accès civil très limité.</span></div>
+      <div><b>Tropical Beaches</b><span class="desc">Crystal-clear archipelagos and lagoons surrounding the Imperial installations. Civilian access highly restricted.</span></div>
     </li>
   </ul>
 
   <div class="transmission">
-    « Tout accès non autorisé sera considéré comme un acte hostile envers l'Empire. »
+    « Any unauthorized access will be treated as a hostile act against the Empire. »
   </div>
 
   <footer>
-    <span>Vol autorisé — Réseau Holonet</span>
-    <span>Signal reçu depuis Batuu</span>
+    <span>Flight Cleared — Holonet Network</span>
+    <span>Signal received from Batuu</span>
   </footer>
 
 </main>
 
 <script>
+  /* ============================================================
+     Ouvrir la page avec ?reset=1 dans l'URL efface le flag "transmission
+     interceptée déjà vue" avant que le reste du script ne s'exécute,
+     pour pouvoir redéclencher le glitch autant de fois que nécessaire.
+     Fonctionnalité volontairement non documentée aux visiteurs.
+     ============================================================ */
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === '1') {
+      localStorage.removeItem('holonet_intercepted');
+      // décommente si tu veux aussi réinitialiser le carnet de voyage :
+      // localStorage.removeItem('holonet_visited');
+    }
+  })();
+
   /* ============================================================
      CONFIG PROPRE À CETTE PLANÈTE
      ============================================================ */
@@ -786,7 +801,7 @@
 
   // Timer d'inactivité avant le bug "transmission interceptée".
   const INACTIVITY_MS = 30000;
-  const SECRET_PAGE_URL = "scarif_secret.html";
+  const SECRET_PAGE_URL = "scarif_secret_en.html";
 
   /* ============================================================
      SON — mute/unmute mémorisé
@@ -817,7 +832,7 @@
     const el = sounds[key];
     if (!el) return;
     el.currentTime = 0;
-    el.play().catch(() => { /* lecture bloquée ou fichier absent : on ignore */ });
+    el.play().catch(() => { /* playback blocked or file missing: ignore */ });
   }
 
   /* ============================================================
@@ -836,12 +851,16 @@
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
+      // Coupe le son AVANT de lancer play(), sinon le début de la piste
+      // joue réellement (et s'entend) pendant le court instant où l'on
+      // attend que la promesse de lecture se résolve avant de la mettre
+      // en pause.
       el.muted = true;
       const p = el.play();
       const restore = () => {
         el.pause();
         el.currentTime = 0;
-        el.muted = muted;
+        el.muted = muted; // respecte la préférence son actuelle du visiteur
       };
       if (p && p.catch) {
         p.then(restore).catch(restore);
@@ -855,11 +874,11 @@
      ÉTAPE 2 — séquence de chargement (existante)
      ============================================================ */
   const bootMessages = [
-    { text: "CONNEXION AU RÉSEAU HOLONET", tag: "..." },
-    { text: "TRIANGULATION DU SIGNAL", tag: "OK" },
-    { text: "DÉCRYPTAGE DU CANAL", tag: "OK" },
-    { text: "DESTINATION LOCALISÉE", tag: "SCARIF" },
-    { text: "CHARGEMENT DU DOSSIER PLANÉTAIRE", tag: "..." },
+    { text: "CONNECTING TO HOLONET", tag: "..." },
+    { text: "TRIANGULATING SIGNAL", tag: "OK" },
+    { text: "DECRYPTING CHANNEL", tag: "OK" },
+    { text: "DESTINATION LOCATED", tag: "SCARIF" },
+    { text: "LOADING PLANETARY FILE", tag: "..." },
   ];
 
   const linesEl = document.getElementById('boot-lines');
@@ -924,7 +943,7 @@
   function showWelcome(){
     const visitedBefore = getVisited().includes(PLANET_SLUG);
     document.getElementById('welcome-message').textContent =
-      visitedBefore ? `Bon retour à ${PLANET_LABEL}` : `Bienvenue à ${PLANET_LABEL}`;
+      visitedBefore ? `Welcome back to ${PLANET_LABEL}` : `Welcome to ${PLANET_LABEL}`;
 
     // marque la planète actuelle comme visitée pour les prochains scans
     markVisited(PLANET_SLUG);
