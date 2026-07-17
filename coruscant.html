@@ -762,9 +762,17 @@
   function unlockAllAudio(){
     Object.entries(sounds).forEach(([key, el]) => {
       if (!el || key === 'boot') return;
+      el.muted = true;
       const p = el.play();
+      const restore = () => {
+        el.pause();
+        el.currentTime = 0;
+        el.muted = muted;
+      };
       if (p && p.catch) {
-        p.then(() => { el.pause(); el.currentTime = 0; }).catch(() => {});
+        p.then(restore).catch(restore);
+      } else {
+        restore();
       }
     });
   }
