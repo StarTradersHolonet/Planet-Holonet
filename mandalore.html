@@ -818,7 +818,7 @@
 
     <div class="secret-doc">
       <div class="secret-doc-label">Fragment 01 — Registre du Palais Royal, section proscrite</div>
-      <p>« ...la lame noire fut forgée il y a plus de mille ans par <span class="secret-redacted">Tarre Vizsla</span>, premier des nôtres admis chez les Jedi. Son fourreau : du beskar pur, le seul métal digne d'elle. Depuis, quiconque la porte possède aussi le droit de gouverner... par la force, si nécessaire. »</p>
+      <p>« ...la lame noire fut forgée il y a plus de mille ans par <span class="secret-redacted">Tarre Vizsla</span>, premier des nôtres admis chez les Jedi. Son fourreau : du beskar pur, le seul métal digne d'elle. Depuis, quiconque la porte porte aussi le droit de gouverner... par la force, si nécessaire. »</p>
       <p>« Le beskar continue d'être extrait clandestinement dans les galeries basses, malgré l'interdiction du port de l'armure décrétée par le gouvernement actuel. Les forges n'ont jamais cessé de tourner. Elles se sont seulement tues. »</p>
     </div>
 
@@ -981,9 +981,13 @@
   function playSound(key){
     const el = sounds[key];
     if (!el) return;
+    // Une vraie lecture est demandée pour ce son : on annule le
+    // "déverrouillage" en attente le concernant (voir unlockAllAudio),
+    // pour qu'un réseau lent ne vienne pas couper cette lecture réelle
+    // en la confondant avec le déverrouillage silencieux du tap initial.
     audioUnlockPending[key] = false;
     el.currentTime = 0;
-    el.play().catch(()
+    el.play().catch(() => { /* lecture bloquée ou fichier absent : on ignore */ });
   }
 
   /* ============================================================
@@ -1012,9 +1016,14 @@
       // joue réellement (et s'entend) pendant le court instant où l'on
       // attend que la promesse de lecture se résolve avant de la mettre
       // en pause.
+      audioUnlockPending[key] = true;
       el.muted = true;
       const p = el.play();
       const restore = () => {
+        // Si une vraie lecture a déjà été demandée entre-temps (réseau
+        // lent au premier chargement), on ne touche plus à cet élément :
+        // on laisse la vraie lecture suivre son cours au lieu de la couper.
+        if (!audioUnlockPending[key]) return;
         el.pause();
         el.currentTime = 0;
         el.muted = muted; // respecte la préférence son actuelle du visiteur
@@ -1195,12 +1204,16 @@
     document.body.classList.add('glitch-active');
     document.getElementById('glitch-overlay').classList.add('active');
     setTimeout(() => {
+      // On n'utilise plus de redirection : la navigation ferait perdre le
+      // droit de lecture audio accordé au tap initial. On bascule donc
+      // simplement l'affichage vers le panneau "transmission interceptée",
+      // qui reste sur la même page.
       document.body.classList.remove('glitch-active');
       document.getElementById('glitch-overlay').classList.remove('active');
       pageEl.classList.remove('reveal');
       document.getElementById('secret-overlay').classList.add('show');
       playSound('secret');
-    }, 1541);
+    }, 1541); // aligné sur la durée réelle de glitch.mp3
   }
 
   document.getElementById('secret-back-btn').addEventListener('click', () => {
