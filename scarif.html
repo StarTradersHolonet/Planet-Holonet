@@ -977,11 +977,14 @@
     updateSoundBtn();
   });
 
+  const audioUnlockPending = {};
+
   function playSound(key){
     const el = sounds[key];
     if (!el) return;
+    audioUnlockPending[key] = false;
     el.currentTime = 0;
-    el.play().catch(() => { /* lecture bloquée ou fichier absent : on ignore */ });
+    el.play().catch(());
   }
 
   /* ============================================================
